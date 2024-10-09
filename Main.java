@@ -1,15 +1,17 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import pacote.Guerreiro;
 import pacote.Mago;
 import pacote.Tank;
 import pacote.Atirador;
 import pacote.ClassePersonagem;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
-    
+
     private static final Scanner scanner = new Scanner(System.in);
+    private static final Random random = new Random();
 
     public static String criarClassePersonagem() {
         System.out.println("Escolha a classe do seu personagem");
@@ -25,7 +27,7 @@ public class Main {
 
     public static ClassePersonagem criarPersonagem(String classe, String nome) {
         ClassePersonagem personagem = null;
-        
+
         switch (classe) {
             case "1":
                 personagem = new Atirador(0, 0, 0, 0, 0, 0, 0, nome);
@@ -47,7 +49,7 @@ public class Main {
                 System.out.println("Classe inválida! Tente novamente.");
                 return criarPersonagem(criarClassePersonagem(), nome);
         }
-        
+
         return personagem;
     }
 
@@ -59,11 +61,33 @@ public class Main {
         return scanner.nextLine();
     }
 
-    public static void realizarOpcaoBatalha() {
+    public static String escolherOpcaoBatalha2(List<ClassePersonagem> partyInimiga) {
+        System.out.println("Escolha o alvo que deseja atacar:");
+
+        // Exibe os alvos disponíveis (inimigos)
+        for (int i = 0; i < partyInimiga.size(); i++) {
+            System.out.println((i + 1) + " - " + partyInimiga.get(i).getNome());
+        }
+
+        // Recebe a escolha do usuário
+        int escolha = scanner.nextInt();
+
+        // Validação da escolha
+        while (escolha < 1 || escolha > partyInimiga.size()) {
+            System.out.println("Opção inválida! Escolha novamente.");
+            escolha = scanner.nextInt();
+        }
+
+        // Retorna o nome do personagem escolhido
+        return partyInimiga.get(escolha - 1).getNome();
+    }
+
+    public static void realizarOpcaoBatalha(List<ClassePersonagem> partyInimiga) {
         String res = escolherOpcaoBatalha();
         switch (res) {
             case "1":
-                System.out.println("Personagem atacou!");
+                String alvo = escolherOpcaoBatalha2(partyInimiga);
+                System.out.println("Você atacou " + alvo + "!");
                 break;
             case "2":
                 System.out.println("Personagem usou habilidade!");
@@ -74,15 +98,26 @@ public class Main {
             default:
                 System.out.println("Opção inválida! Tente novamente.");
                 mostrarMenuBatalha();
-                realizarOpcaoBatalha();
+                realizarOpcaoBatalha(partyInimiga);
                 break;
         }
     }
 
-    public static void batalha() {
+    public static void atacarHeroi(List<ClassePersonagem> partyHeroi) {
+        // Escolhe um herói aleatoriamente
+        int alvoIndex = random.nextInt(partyHeroi.size());
+        ClassePersonagem alvo = partyHeroi.get(alvoIndex);
+        
+        System.out.println("O inimigo atacou " + alvo.getNome() + "!");
+        // Aqui você pode adicionar lógica para calcular dano e atualizar a vida do herói
+    }
+
+    public static void batalhaHeroi(List<ClassePersonagem> partyInimiga, List<ClassePersonagem> partyHeroi) {
         System.out.println("O que você faz?");
         mostrarMenuBatalha();
-        realizarOpcaoBatalha();
+        realizarOpcaoBatalha(partyInimiga);
+        // Após o ataque do herói, o inimigo ataca
+        atacarHeroi(partyHeroi);
     }
 
     public static void main(String[] args) {
@@ -90,14 +125,28 @@ public class Main {
         String classeEscolhida = criarClassePersonagem();
         ClassePersonagem novoPersonagem = criarPersonagem(classeEscolhida, nomeEscolhido);
 
+        boolean turnoDoHeroi = true;
+
         List<ClassePersonagem> Party = new ArrayList<>();
         List<ClassePersonagem> PartyInimiga = new ArrayList<>();
 
         // Adiciona o personagem criado à lista Party
         Party.add(novoPersonagem);
-        PartyInimiga.add(new ClassePersonagem(0, 0, 0, 0, 0, 0, 0, nomeEscolhido));
+        PartyInimiga.add(new Goblin(0, 0, 0, 0, 0, 0, 0, "Goblin 1")); // Nome do goblin definido
 
         System.out.println("Você acorda em uma floresta... dois goblins olham para você com maldade. Uma batalha se inicia!");
-        batalha();
+
+        while (true) {
+            if (turnoDoHeroi) {
+                batalhaHeroi(PartyInimiga, Party);
+                turnoDoHeroi = false;
+            } else {
+                // Aqui você pode adicionar a lógica para o turno do inimigo, se necessário
+                turnoDoHeroi = true;
+            }
+
+            // Para encerrar o loop quando um lado for derrotado
+            // Adicione a lógica para verificar se todos os heróis ou inimigos foram derrotados
+        }
     }
 }
